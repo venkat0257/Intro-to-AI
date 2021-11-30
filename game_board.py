@@ -124,6 +124,7 @@ GAME_BOARD_FILLED_SLOTS = {}
 GAME_BOARD_ALL_SLOTS = [[None for _ in range(GAME_BOARD_COLS)] \
                             for _ in range(GAME_BOARD_ROWS)]
 
+# Used for the dictionary board. No parameter required.
 def drop_game_piece(player: int, selected_column: int) -> tuple:
     first_available_slot = 0
 
@@ -142,6 +143,27 @@ def drop_game_piece(player: int, selected_column: int) -> tuple:
     piece_color = player_colors[player]
     GAME_BOARD_FILLED_SLOTS[(first_available_slot, selected_column)] = piece_color
     GAME_BOARD_ALL_SLOTS[first_available_slot][selected_column] = piece_color
+
+    # Return boolean and row to be used for confirming a winner.
+    return (True, first_available_slot)
+
+# Used for dropping a piece into a temporary board.
+def drop_game_piece_temp(temp_board: list, player: int, selected_column: int) -> tuple:
+    first_available_slot = 0
+
+    # If column is filled.
+    if temp_board[first_available_slot][selected_column]:
+        print('This column is full. Try another column.')
+        return (False, None)
+
+    for row in range(GAME_BOARD_ROWS):
+        if temp_board[row][selected_column] == None:
+            first_available_slot = row
+        else:
+            break
+
+    # Add the game piece color to the temporary board (2D-List).
+    temp_board[first_available_slot][selected_column] = player_colors[player]
 
     # Return boolean and row to be used for confirming a winner.
     return (True, first_available_slot)
