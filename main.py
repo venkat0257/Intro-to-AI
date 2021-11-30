@@ -1,6 +1,6 @@
 try:
     from game_board import *
-    
+
     import alpha_beta
     import pygame
 except ImportError as E:
@@ -65,7 +65,7 @@ def main():
                 if detect_selection_click():
                     draw_window()
                     pygame.time.wait(700)
-                    ab.ai_move(GAME_BOARD_FILLED_SLOTS)
+                    ab.ai_move(GAME_BOARD_ALL_SLOTS)
 
         draw_window()
 

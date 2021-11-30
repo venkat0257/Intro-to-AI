@@ -17,19 +17,15 @@ GAME_BOARD = pygame.image.load(os.path.join('assets', 'c4-board.png'))
 RED_PIECE  = pygame.image.load(os.path.join('assets', 'c4-red-piece.png'))
 YLW_PIECE  = pygame.image.load(os.path.join('assets', 'c4-yellow-piece.png'))
 
-# Integer values for both players.
-P1_HUMAN = 1
-P2_AI = 2
+# Integer/index values for both players.
+P1_HUMAN = 0
+P2_AI = 1
 
 # Used to display winning messages.
 player_names = ['Red', 'Yellow']
 
-# Get the correct game piece color.
-def get_piece_color(player: int) -> str:
-    if player == P1_HUMAN:
-        return 'R'
-    elif player == P2_AI:
-        return 'Y'
+# List of the two player colors.
+player_colors = ['R', 'Y']
 
 # Image Asset Dimensions / Constants
 GAME_BOARD_WIDTH = 509
@@ -124,6 +120,10 @@ def draw_selection_hover():
 # Create a map for all filled slots within the game board.
 GAME_BOARD_FILLED_SLOTS = {}
 
+# A 2D-List containing all empty/non-empty slots within the game board.
+GAME_BOARD_ALL_SLOTS = [[None for _ in range(GAME_BOARD_COLS)] \
+                            for _ in range(GAME_BOARD_ROWS)]
+
 def drop_game_piece(player: int, selected_column: int) -> tuple:
     first_available_slot = 0
 
@@ -138,8 +138,10 @@ def drop_game_piece(player: int, selected_column: int) -> tuple:
         else:
             break
 
-    # Add the game piece color to the filled slots map.
-    GAME_BOARD_FILLED_SLOTS[(first_available_slot, selected_column)] = get_piece_color(player)
+    # Add the game piece color to the filled slots map and the 2D-List.
+    piece_color = player_colors[player]
+    GAME_BOARD_FILLED_SLOTS[(first_available_slot, selected_column)] = piece_color
+    GAME_BOARD_ALL_SLOTS[first_available_slot][selected_column] = piece_color
 
     # Return boolean and row to be used for confirming a winner.
     return (True, first_available_slot)
@@ -149,7 +151,7 @@ def validate_winner(player: int, selected_column: int):
     if valid_drop[0]:
         winner = confirm_winner(valid_drop[1], selected_column)
         if winner[0]:
-            winner_name = player_names[player - 1]
+            winner_name = player_names[player]
             print(f'{winner_name} wins the game!')
         return True
     else:
