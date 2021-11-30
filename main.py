@@ -1,5 +1,11 @@
-from game_board import *
-import pygame
+try:
+    from game_board import *
+    
+    import alpha_beta
+    import pygame
+except ImportError as E:
+    print(f'main.py => {E}')
+
 
 ''' Name:    Connect 4 [Reinforcement Learning]
     Class:   Intro to AI - CSCI 6660-01
@@ -10,6 +16,9 @@ import pygame
 # Window Dimensions
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Alpha-Beta Object
+ab = alpha_beta.AlphaBeta()
 
 # Title Bar Caption
 pygame.display.set_caption('[AI-F21] Connect 4 - University of New Haven')
@@ -53,7 +62,11 @@ def main():
             if event.type == pygame.QUIT:
                 run = False 
             if event.type == pygame.MOUSEBUTTONUP:
-                detect_selection_click()
+                if detect_selection_click():
+                    draw_window()
+                    pygame.time.wait(700)
+                    ab.ai_move(GAME_BOARD_FILLED_SLOTS)
+
         draw_window()
 
     pygame.quit()
