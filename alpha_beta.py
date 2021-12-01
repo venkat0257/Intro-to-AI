@@ -189,14 +189,17 @@ class AlphaBeta:
             return (col, val)
 
     def validate_drop_location(self, board: list, selected_column: int) -> bool:
-        if selected_column < 0 or selected_column > gb.GAME_BOARD_COLS - 1:
-            selected_column = randint(0, gb.GAME_BOARD_COLS)
-        
         return board[0][selected_column] == None
 
     def ai_move(self, board: list):
         (column, score) = self.minimax(board, gb.GAME_BOARD_ROWS - 1,
             self.NEG_INFINITY,self.INFINITY, True)
+
+        # If the game board is not full.
+        valid_columns = self.get_valid_columns(board)
+        if len(valid_columns) > 0:
+            if column == None or column < 0 or column >= gb.GAME_BOARD_COLS:
+                column = valid_columns[randint(0, len(valid_columns)-1)]
 
         print(f'[AI] Column: {column}, Score: {score}')
 
