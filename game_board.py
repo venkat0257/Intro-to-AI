@@ -1,5 +1,5 @@
 try:
-    from main import WIN, WIDTH
+    from main import WIN, WIDTH, set_game_over
 
     import pygame
     import os
@@ -22,7 +22,7 @@ P1_HUMAN = 0
 P2_AI = 1
 
 # Used to display winning messages.
-player_names = ['Red', 'Yellow']
+player_names = ['Player 1', 'AI']
 
 # List of the two player colors.
 player_colors = ['R', 'Y']
@@ -174,7 +174,8 @@ def validate_winner(player: int, selected_column: int):
         winner = confirm_winner(valid_drop[1], selected_column)
         if winner[0]:
             winner_name = player_names[player]
-            print(f'{winner_name} wins the game!')
+            print(f'{winner_name} wins!')
+            set_game_over()
         return True
     else:
         # Returns False if column is full.
