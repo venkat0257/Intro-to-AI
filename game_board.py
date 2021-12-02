@@ -1,6 +1,12 @@
-from main import WIN, WIDTH
-import pygame
-import os
+try:
+    from main import WIN, WIDTH
+
+    import globals
+    import pygame
+    import os
+except ImportError as E:
+    print(f'game_board.py => {E}')
+
 
 ''' CREATE THE BOARD & PIECES:
     The board and game piece images are generated and utilized here.
@@ -12,17 +18,15 @@ GAME_BOARD = pygame.image.load(os.path.join('assets', 'c4-board.png'))
 RED_PIECE  = pygame.image.load(os.path.join('assets', 'c4-red-piece.png'))
 YLW_PIECE  = pygame.image.load(os.path.join('assets', 'c4-yellow-piece.png'))
 
-# Current game piece color.
-current_color = 'R'
+# Integer/index values for both players.
+P1_HUMAN = 0
+P2_AI = 1
 
-# Update game piece color.
-def update_current_color():
-    global current_color
+# Used to display winning messages.
+player_names = ['Player 1', 'AI']
 
-    if current_color == 'R':
-        current_color = 'Y'
-    else:
-        current_color = 'R'
+# List of the two player colors.
+player_colors = ['R', 'Y']
 
 # Image Asset Dimensions / Constants
 GAME_BOARD_WIDTH = 509
@@ -104,9 +108,8 @@ def draw_selection_hover():
                 COLUMN_SELECTION_SURFACE_POS[selected_column][1]
         w, h = 68, 80
 
-        piece = RED_PIECE if current_color == 'R' else YLW_PIECE
-        WIN.blit(piece, dest=(x+w-GAME_PIECE_DIMEN-((w-GAME_PIECE_DIMEN)/2)+1,
-                              y+h-GAME_PIECE_DIMEN-10, w, h))
+        WIN.blit(RED_PIECE, dest=(x+w-GAME_PIECE_DIMEN-((w-GAME_PIECE_DIMEN)/2)+1,
+                                    y+h-GAME_PIECE_DIMEN-10, w, h))
     elif pygame.mouse.get_visible() == False:
         pygame.mouse.set_visible(True)
 
@@ -115,30 +118,66 @@ def draw_selection_hover():
     Keep track of all filled slots within the game board.
     Add logic for dropping game pieces into the board.
 '''
-# Create a map for all filled slots within the game board.
-GAME_BOARD_FILLED_SLOTS = {}
-
-def drop_game_piece(selected_column: int) -> tuple:
+# Used for the dictionary board. No parameter required.
+def drop_game_piece(player: int, selected_column: int) -> tuple:
     first_available_slot = 0
 
     # If column is filled.
-    if GAME_BOARD_FILLED_SLOTS.get((first_available_slot, selected_column)):
+    if globals.GAME_BOARD_FILLED_SLOTS.get((first_available_slot, selected_column)):
         print('This column is full. Try another column.')
         return (False, None)
 
     for row in range(GAME_BOARD_ROWS):
-        if GAME_BOARD_FILLED_SLOTS.get((row, selected_column)) == None:
+        if globals.GAME_BOARD_FILLED_SLOTS.get((row, selected_column)) == None:
             first_available_slot = row
         else:
             break
 
-    # Add the game piece color to the filled slots map.
-    GAME_BOARD_FILLED_SLOTS[(first_available_slot, selected_column)] = current_color
+    # Add the game piece color to the filled slots map and the 2D-List.
+    piece_color = player_colors[player]
+    globals.GAME_BOARD_FILLED_SLOTS[(first_available_slot, selected_column)] = piece_color
+    globals.GAME_BOARD_ALL_SLOTS[first_available_slot][selected_column] = piece_color
 
     # Return boolean and row to be used for confirming a winner.
     return (True, first_available_slot)
 
-def detect_selection_click():
+# Used for dropping a piece into a temporary board.
+def drop_game_piece_temp(temp_board: list, player: int, selected_column: int) -> tuple:
+    first_available_slot = 0
+
+    # If column is filled.
+    if temp_board[first_available_slot][selected_column]:
+        print('This column is full. Try another column.')
+        return (False, None)
+
+    for row in range(GAME_BOARD_ROWS):
+        if temp_board[row][selected_column] == None:
+            first_available_slot = row
+        else:
+            break
+
+    # Add the game piece color to the temporary board (2D-List).
+    temp_board[first_available_slot][selected_column] = player_colors[player]
+
+    # Return boolean and row to be used for confirming a winner.
+    return (True, first_available_slot)
+
+def validate_winner(player: int, selected_column: int):
+    valid_drop = drop_game_piece(player, selected_column)
+    if valid_drop[0]:
+        winner = confirm_winner(valid_drop[1], selected_column)
+        if winner[0]:
+            winner_name = player_names[player]
+
+            # End the game and set the winning player name.
+            globals.game_over = True
+            globals.winner    = winner_name
+        return True
+    else:
+        # Returns False if column is full.
+        return False
+
+def detect_selection_click() -> bool:
     selected_column = detect_selection_hover()
     col_width       = COLUMN_SELECTION_SURFACES[0].get_width()
 
@@ -146,13 +185,7 @@ def detect_selection_click():
         mouse_x = pygame.mouse.get_pos()[0]
         col_x   = COLUMN_SELECTION_SURFACE_POS[selected_column][0]
         if mouse_x > col_x and mouse_x < col_x + col_width:
-            valid_drop = drop_game_piece(selected_column)
-            if valid_drop[0]:
-                winner = confirm_winner(valid_drop[1], selected_column)
-                if winner[0]:
-                    winner_color = 'Red' if winner[1] == 'R' else 'Yellow'
-                    print(f'{winner_color} wins the game!')
-                update_current_color()
+            return validate_winner(P1_HUMAN, selected_column)
 
 
 ''' CHECK FOR CONNECT 4:
@@ -160,7 +193,7 @@ def detect_selection_click():
     four of their game pieces and won the game.
 '''
 def check_c4_vertical(r: int, c: int) -> tuple:
-    slots       = GAME_BOARD_FILLED_SLOTS
+    slots       = globals.GAME_BOARD_FILLED_SLOTS
     piece_color = slots.get((r, c))
     connect_4   = False
 
@@ -178,7 +211,7 @@ def check_c4_vertical(r: int, c: int) -> tuple:
     return (connect_4, piece_color)
 
 def check_c4_horizontal(r: int, c: int) -> tuple:
-    slots       = GAME_BOARD_FILLED_SLOTS
+    slots       = globals.GAME_BOARD_FILLED_SLOTS
     piece_color = slots.get((r, c))
     connect_4   = False
 
@@ -196,7 +229,7 @@ def check_c4_horizontal(r: int, c: int) -> tuple:
     return (connect_4, piece_color)
 
 def check_c4_diagonal_left(r: int, c: int) -> tuple:
-    slots       = GAME_BOARD_FILLED_SLOTS
+    slots       = globals.GAME_BOARD_FILLED_SLOTS
     piece_color = slots.get((r, c))
     connect_4   = False
 
@@ -249,7 +282,7 @@ def check_c4_diagonal_left(r: int, c: int) -> tuple:
     return (connect_4, piece_color)
 
 def check_c4_diagonal_right(r: int, c: int) -> tuple:
-    slots       = GAME_BOARD_FILLED_SLOTS
+    slots       = globals.GAME_BOARD_FILLED_SLOTS
     piece_color = slots.get((r, c))
     connect_4   = False
 
