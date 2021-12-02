@@ -3,6 +3,7 @@ try:
     from math import inf
 
     import game_board as gb
+    import globals
     import copy
 except ImportError as E:
     print(f'alpha_beta.py => {E}')
@@ -192,16 +193,17 @@ class AlphaBeta:
         return board[0][selected_column] == None
 
     def ai_move(self, board: list):
-        (column, score) = self.minimax(board, gb.GAME_BOARD_ROWS - 1,
-            self.NEG_INFINITY,self.INFINITY, True)
+        if not globals.game_over:
+            (column, score) = self.minimax(board, gb.GAME_BOARD_ROWS - 1,
+                self.NEG_INFINITY,self.INFINITY, True)
 
-        # If the game board is not full.
-        valid_columns = self.get_valid_columns(board)
-        if len(valid_columns) > 0:
-            if column == None or column < 0 or column >= gb.GAME_BOARD_COLS:
-                column = valid_columns[randint(0, len(valid_columns)-1)]
+            # If the game board is not full.
+            valid_columns = self.get_valid_columns(board)
+            if len(valid_columns) > 0:
+                if column == None or column < 0 or column >= gb.GAME_BOARD_COLS:
+                    column = valid_columns[randint(0, len(valid_columns)-1)]
 
-        print(f'[AI] Column: {column}, Score: {score}')
+            print(f'[AI] Column: {column}, Score: {score}')
 
-        if self.validate_drop_location(board, column):
-            gb.validate_winner(gb.P2_AI, column)
+            if self.validate_drop_location(board, column):
+                gb.validate_winner(gb.P2_AI, column)

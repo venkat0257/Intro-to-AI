@@ -2,6 +2,7 @@ try:
     from game_board import *
 
     import alpha_beta
+    import globals
     import pygame
 except ImportError as E:
     print(f'main.py => {E}')
@@ -31,24 +32,14 @@ RED        = (255, 0, 0)
 
 FPS = 60 # Frame Rate
 
-# Boolean for indicating end of game.
-game_over = False
-
 # Set the default game font.
 pygame.font.init()
 
 def create_font_text(size: int) -> pygame.font.SysFont:
     return pygame.font.SysFont('Monoscape', size)
 
-def set_game_over():
-    global game_over
-    game_over = True
-    pygame.mouse.set_visible(True)
-
 # Create and update display window.
 def draw_window():
-    global game_over
-
     # Add Background Color
     WIN.fill(LIGHT_BLUE) 
     # Draw Game Board Image
@@ -59,10 +50,10 @@ def draw_window():
         WIN.blit(COLUMN_SELECTION_SURFACES[i], COLUMN_SELECTION_SURFACE_POS[i])
 
     # Draw game pieces in the filled game board slots.
-    for (row, col) in GAME_BOARD_FILLED_SLOTS:
-        if GAME_BOARD_FILLED_SLOTS[(row, col)] == 'R':
+    for (row, col) in globals.GAME_BOARD_FILLED_SLOTS:
+        if globals.GAME_BOARD_FILLED_SLOTS[(row, col)] == 'R':
             WIN.blit(RED_PIECE, GAME_BOARD_SLOT_POSITIONS[row][col])
-        elif GAME_BOARD_FILLED_SLOTS[(row, col)] == 'Y':
+        elif globals.GAME_BOARD_FILLED_SLOTS[(row, col)] == 'Y':
             WIN.blit(YLW_PIECE, GAME_BOARD_SLOT_POSITIONS[row][col])
 
     # Create text for title and author names.
@@ -77,10 +68,10 @@ def draw_window():
         (WIDTH - 184, HEIGHT - 36))
 
     # Draw game piece when hovering above the game board.
-    if not game_over:
+    if not globals.game_over:
         draw_selection_hover()
 
-    if game_over:
+    if globals.game_over:
         # Create alpha-black overlay.
         s = pygame.Surface((WIDTH, HEIGHT))
         s.set_alpha(200)
@@ -88,14 +79,25 @@ def draw_window():
         WIN.blit(s, (0, 0))
 
         end_screen_font = create_font_text(75)
-        WIN.blit(end_screen_font.render('Game Over!', 1, (WHITE)),
+        WIN.blit(end_screen_font.render('Game Over!', 1, WHITE),
             ((WIDTH / 2) - 146, 20))
+
+        if globals.winner == player_names[0]:
+            winner_color = RED
+            winner_name_pos = ((WIDTH / 2) - 175, (HEIGHT / 2) - 50)
+        else:
+            winner_color = YELLOW
+            winner_name_pos = ((WIDTH / 2) - 105, (HEIGHT / 2) - 50) 
+ 
+        WIN.blit(end_screen_font.render(f'{globals.winner} wins!', 1, winner_color),
+            winner_name_pos)
+
+        WIN.blit(end_screen_font.render('Press SPACE to try again.', 1, WHITE),
+            ((WIDTH / 2) - 310, (HEIGHT / 2) + 20))
 
     pygame.display.update()
 
 def main():
-    global game_over
-
     # Fill gameboard slot positions.
     populate_gameboard_slot_pos()
 
@@ -107,19 +109,30 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if not game_over:
+            if not globals.game_over:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if detect_selection_click():
                         draw_window()
                         pygame.time.wait(700)
-                        ab.ai_move(GAME_BOARD_ALL_SLOTS)
-                # if event.type == pygame.KEYDOWN:
-                #     if event.key == pygame.K_w:
-                #         set_game_over()
+                        ab.ai_move(globals.GAME_BOARD_ALL_SLOTS)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_w:
+                        globals.winner = player_names[1]
+                        globals.game_over = True
+                        pygame.mouse.set_visible(True)
+            else:
+                # Key press for restarting.
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        globals.game_over = False
+                        globals.GAME_BOARD_FILLED_SLOTS = {}
+                        globals.GAME_BOARD_ALL_SLOTS = [[None for _ in range(GAME_BOARD_COLS)] \
+                            for _ in range(GAME_BOARD_ROWS)]
 
         draw_window()
 
     pygame.quit()
 
 if __name__ == '__main__':
+    globals.initialize()
     main()
