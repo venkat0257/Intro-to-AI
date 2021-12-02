@@ -78,6 +78,8 @@ def draw_window():
         s.fill((0, 0, 0))
         WIN.blit(s, (0, 0))
 
+        pygame.mouse.set_visible(True)
+
         end_screen_font = create_font_text(75)
         WIN.blit(end_screen_font.render('Game Over!', 1, WHITE),
             ((WIDTH / 2) - 146, 20))
@@ -119,7 +121,6 @@ def main():
                     if event.key == pygame.K_w:
                         globals.winner = player_names[1]
                         globals.game_over = True
-                        pygame.mouse.set_visible(True)
             else:
                 # Key press for restarting.
                 if event.type == pygame.KEYDOWN:
