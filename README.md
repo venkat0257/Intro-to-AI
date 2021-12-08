@@ -13,7 +13,7 @@ This project was built using Python and Pygame.
 - Using the **git clone** command in your terminal *OR*
 - **Downloading the ZIP folder** directly
 
-2. Once the repository folder is on your machine, open it within the terminal and navigate within it. <u>For this demonstration, the folder has been placed on the **Desktop**</u>.
+2. Once the repository folder is on your machine, open it within the terminal. <u>For this demonstration, the folder has been placed on the **Desktop**</u>.
 
 ![Terminal - Change Directory](./img/readme_console1.png)
 
