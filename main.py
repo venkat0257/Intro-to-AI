@@ -56,6 +56,16 @@ def draw_window():
         elif globals.GAME_BOARD_FILLED_SLOTS[(row, col)] == 'Y':
             WIN.blit(YLW_PIECE, GAME_BOARD_SLOT_POSITIONS[row][col])
 
+    # If game board is full -- Game over
+    if globals.GAME_BOARD_FILLED_SLOTS.get((0, 0)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 2)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 1)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 3)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 4)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 5)) and \
+            globals.GAME_BOARD_FILLED_SLOTS.get((0, 6)):
+        globals.game_over = True
+
     # Create text for title and author names.
     title_font = create_font_text(32)
     WIN.blit(title_font.render('Connect 4', 1, (WHITE)),
@@ -87,12 +97,16 @@ def draw_window():
         if globals.winner == player_names[0]:
             winner_color = RED
             winner_name_pos = ((WIDTH / 2) - 175, (HEIGHT / 2) - 50)
-        else:
+        elif globals.winner == player_names[1]:
             winner_color = YELLOW
             winner_name_pos = ((WIDTH / 2) - 105, (HEIGHT / 2) - 50) 
- 
-        WIN.blit(end_screen_font.render(f'{globals.winner} wins!', 1, winner_color),
-            winner_name_pos)
+        else:
+            winner_name_pos = ((WIDTH / 2) - 145, (HEIGHT / 2) - 50)
+        if len(globals.winner) > 0:
+            WIN.blit(end_screen_font.render(f'{globals.winner} wins!', 1, winner_color),
+                winner_name_pos)
+        else:
+            WIN.blit(end_screen_font.render('It was a Tie!', 1, WHITE), winner_name_pos)
 
         WIN.blit(end_screen_font.render('Press SPACE to try again.', 1, WHITE),
             ((WIDTH / 2) - 310, (HEIGHT / 2) + 20))
@@ -117,18 +131,19 @@ def main():
                         draw_window()
                         pygame.time.wait(700)
                         ab.ai_move(globals.GAME_BOARD_ALL_SLOTS)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_w:
-                        globals.winner = player_names[1]
-                        globals.game_over = True
+                # if event.type == pygame.KEYDOWN:
+                #     if event.key == pygame.K_w:
+                #         globals.game_over = True
             else:
                 # Key press for restarting.
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
+                        globals.winner = ''
                         globals.game_over = False
                         globals.GAME_BOARD_FILLED_SLOTS = {}
-                        globals.GAME_BOARD_ALL_SLOTS = [[None for _ in range(GAME_BOARD_COLS)] \
-                            for _ in range(GAME_BOARD_ROWS)]
+                        globals.GAME_BOARD_ALL_SLOTS = [
+                                [None for _ in range(GAME_BOARD_COLS)] \
+                                    for _ in range(GAME_BOARD_ROWS)]
 
         draw_window()
 
